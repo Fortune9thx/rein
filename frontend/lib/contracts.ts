@@ -33,6 +33,7 @@ export interface ReinStatus {
   threat_score: string;
   bond_amount: string;
   bond_funded: boolean;
+  settled: boolean;
   last_verdict: string;
   last_reason: string;
   last_confidence: string;

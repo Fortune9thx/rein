@@ -41,7 +41,7 @@ def _mock_jury(vm, verdict, confidence="0.9", reason="Consistent with the mandat
         kill_switch = verdict == "VIOLATION"
     vm.mock_web(r"example\.com/invoice", {"method": "GET", "status": 200, "body": "Invoice for approved vendor, $100."})
     vm.mock_llm(
-        r"mandate jury",
+        r"authorized job",
         _wrapped_json(
             {
                 "verdict": verdict,
@@ -139,7 +139,7 @@ def test_adjudicate_dead_evidence_link_still_completes():
         _fund(rein, vm, principal)
         action_id = _submit(rein, vm, agent, amount=100, urls=["https://dead-link.example/nowhere"])
         vm.mock_llm(
-            r"mandate jury",
+            r"authorized job",
             _wrapped_json(
                 {
                     "verdict": "IN_MANDATE",

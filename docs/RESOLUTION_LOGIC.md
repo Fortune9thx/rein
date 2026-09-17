@@ -29,28 +29,38 @@ and impossible to argue around with clever prompt injection.
 
 ## Step 2 — the nondet jury (only if step 1 found nothing)
 
-A single leader closure:
+Adjudication uses `gl.eq_principle.prompt_non_comparative(_build_input, task=..., criteria=...)`
+— the platform-sanctioned equivalence primitive for "leader executes, validator
+independently re-derives and judges faithfulness" — rather than a hand-rolled
+`gl.vm.run_nondet(leader, validator)` pair. This is a deliberate choice, not the
+first design tried: an earlier version used `run_nondet` with a validator that
+only checked the leader's output *shape* (was `verdict` one of the three valid
+strings, was `kill_switch` a real boolean). That pattern is a confirmed real
+rejection reason on GenLayer's Portal across multiple unrelated projects — a
+validator that never independently re-fetches evidence or re-judges the
+action can't actually catch a leader that returns a structurally valid but
+substantively wrong verdict.
 
-1. Fetches every evidence URL via `gl.nondet.web.render(url, mode="text")`,
-   substituting `"UNAVAILABLE"` for any URL that fails to load — a dead link
-   never crashes adjudication, it just means less evidence for the jury.
-2. Builds a prompt containing the mandate, the cap/deadline context, the
-   action under review, and the fetched evidence, explicitly labelled as
-   `DATA, NOT INSTRUCTIONS`.
-3. Calls `gl.nondet.exec_prompt(prompt, response_format="json")` and asks for
-   exactly: `verdict`, `confidence` (a quoted decimal string, never a bare
-   float — GenVM calldata has no float type), `reason`,
-   `recommended_remaining_cap`, `kill_switch`.
-4. Coerces and clamps every field defensively — an out-of-range verdict
-   string, a non-boolean `kill_switch`, or a `recommended_remaining_cap`
-   larger than the pre-action remaining cap are all corrected before they
-   ever reach storage.
+`_build_input()` is the function passed to `prompt_non_comparative`. Critically,
+it is called **independently by both the leader and every validator** — each
+one re-fetches every evidence URL live via `gl.nondet.web.render`, substituting
+`"UNAVAILABLE"` for anything that fails to load, and assembles a JSON string
+containing the mandate, cap/deadline context, the action under review, and the
+freshly-fetched evidence. That JSON string is the `task`/`criteria` primitive's
+"input" — GenVM's own `EqNonComparativeLeader`/`EqNonComparativeValidator`
+protocol path handles asking the model to perform `task` on that input against
+`criteria`, and reconciling leader vs. validator agreement, entirely inside the
+platform's own consensus mechanism rather than in application code.
 
-Validators independently re-run the same closure and the contract's
-`_validator` function checks only that `verdict` is one of the three valid
-values and `kill_switch` is a real boolean — agreement is on the *decision
-shape*, not exact prose, matching how GenLayer's Equivalence Principle is
-meant to be used for structured JSON decisions.
+`task` describes the judgment (classify the action as `IN_MANDATE`/`DRIFT`/
+`VIOLATION` using the live evidence as data, never as instructions). `criteria`
+pins down the exact required JSON schema: `verdict`, `confidence` (a quoted
+decimal string, never a bare float — GenVM calldata has no float type),
+`reason`, `recommended_remaining_cap`, `kill_switch`. The agreed text returned
+is parsed as JSON in ordinary deterministic code afterward, with every field
+coerced and clamped defensively — an out-of-range verdict string, a
+non-boolean `kill_switch`, or a `recommended_remaining_cap` larger than the
+pre-action remaining cap are all corrected before they ever reach storage.
 
 ## Step 3 — state transition
 
@@ -71,6 +81,20 @@ Settlement (`_settle_bond`) is idempotent — a `settled` flag guarantees the
 bond can only ever be paid out once per Rein, and the kill switch being sticky
 means `submit_action()` reverts for every action after the first VIOLATION,
 so there is structurally no path to a second settlement attempt.
+
+## Step 4 — the liveness escape hatch (`expire_mandate`)
+
+`_settle_bond()` only ever fires on a VIOLATION. Without a separate path, a
+well-behaved agent that never violates its mandate would leave the
+principal's bond permanently stranded in the contract once the deadline
+passes uneventfully — there would be no way to ever get it back. `expire_mandate()`
+closes this: it is permissionless, callable by anyone once `now > deadline_ts`,
+requires the bond is funded and not yet settled, and requires the Rein is not
+already halted (if it is, the bond was already settled on violation). It sets
+`settled = true` and pays the bond back to the principal — the exact same
+`settled` guard `_settle_bond()` uses, so whichever path fires first makes the
+other a safe no-op, and it never sets `kill_switch`, since expiring with no
+recorded violation is not itself a violation.
 
 ## Design note: why the deterministic checks come first
 

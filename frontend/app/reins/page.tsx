@@ -33,7 +33,12 @@ export default function ReinsArchivePage() {
           client.readContract({ address: REIN_FACTORY_ADDRESS, functionName: "get_reins", args: [] })
         )) as unknown as string[];
 
-        const loaded: Row[] = await Promise.all(
+        // allSettled, not all -- a freshly-deployed sibling Rein can take
+        // noticeably longer to become independently readable than the
+        // parent factory write that registered it (nested-deploy
+        // finalization lag). One not-yet-readable entry must never blank
+        // every other already-ready row; it's silently skipped instead.
+        const settled = await Promise.allSettled(
           addresses.map(async (addr) => {
             const meta = (await readContractRetry(() =>
               client.readContract({ address: REIN_FACTORY_ADDRESS, functionName: "get_rein", args: [addr] })
@@ -49,6 +54,9 @@ export default function ReinsArchivePage() {
             return { meta, status };
           })
         );
+        const loaded: Row[] = settled
+          .filter((r): r is PromiseFulfilledResult<Row> => r.status === "fulfilled")
+          .map((r) => r.value);
 
         if (!cancelled) setRows(loaded.reverse());
       } catch (err) {

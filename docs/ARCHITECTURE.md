@@ -63,19 +63,39 @@ which is the well-proven, safe direction for a native value transfer.
    remaining cap, or the mandate's deadline has already passed, the action is
    a VIOLATION on its face. No LLM call is needed or made; the kill switch
    trips immediately and cheaply.
-2. **The nondet jury** — otherwise, a single `gl.vm.run_nondet_unsafe` call
-   (the one-nondet-call-per-method rule `genvm-lint` enforces) fetches every
-   declared evidence URL live via `gl.nondet.web.render` inside the leader
-   closure, builds the jury prompt, and asks the model to return
-   `IN_MANDATE`, `DRIFT`, or `VIOLATION` with a confidence, a reason, a
-   recommended remaining cap, and a `kill_switch` boolean. Validators check
-   agreement on `verdict` and `kill_switch` only — not exact prose — matching
-   GenLayer's Equivalence Principle model for structured decisions.
+2. **The nondet jury** — otherwise, `gl.eq_principle.prompt_non_comparative`
+   (the one-nondet-call-per-method rule `genvm-lint` enforces) is called with
+   a function that fetches every declared evidence URL live via
+   `gl.nondet.web.render` and assembles it, with the mandate and action, into
+   a JSON input string. That function runs **independently for both the
+   leader and every validator** — each one re-fetches the evidence itself,
+   which is what makes the validation genuinely independent rather than a
+   structural check on the leader's own output. GenVM's own
+   `EqNonComparativeLeader`/`EqNonComparativeValidator` protocol path asks
+   the model to classify the action as `IN_MANDATE`, `DRIFT`, or `VIOLATION`
+   with a confidence, a reason, a recommended remaining cap, and a
+   `kill_switch` boolean, and reconciles leader/validator agreement inside
+   the platform's own consensus mechanism. See
+   [docs/RESOLUTION_LOGIC.md](RESOLUTION_LOGIC.md) for why this replaced an
+   earlier hand-rolled `gl.vm.run_nondet(leader, validator)` design — a
+   validator that only checks output shape, without independently
+   re-acquiring evidence, is a confirmed real GenLayer Portal rejection
+   pattern.
 
 VIOLATION always trips the kill switch and settles the bond, regardless of
 what the model returned for `kill_switch` — that flag is model-recommended
 but never model-*required* to be true for a VIOLATION's consequences to
 apply.
+
+## The liveness escape hatch
+
+`_settle_bond()` only ever fires on VIOLATION. A mandate that simply expires
+uneventfully — no violation ever recorded — would otherwise leave the
+principal's bond permanently stranded in the contract with no way to recover
+it. `expire_mandate()` is a permissionless write, callable by anyone once the
+deadline has passed, that returns the bond to the principal without touching
+the kill switch (expiring quietly is not a violation). It shares the same
+`settled` guard `_settle_bond()` uses, so the two paths can never double-pay.
 
 ## What other systems can query
 

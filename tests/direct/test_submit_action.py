@@ -98,6 +98,79 @@ def test_submit_action_rejects_non_http_evidence():
             rein.submit_action("Buy supplies.", 50, ["ftp://example.com/receipt"])
 
 
+def test_submit_action_rejects_localhost_evidence_url():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["http://localhost/receipt"])
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["http://sub.localhost/receipt"])
+
+
+def test_submit_action_rejects_literal_ip_evidence_url():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["http://127.0.0.1/receipt"])
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["http://[::1]/receipt"])
+
+
+def test_submit_action_rejects_numeric_encoded_ip_evidence_url():
+    """2130706433 is 127.0.0.1 encoded as a plain decimal integer -- a
+    classic SSRF bypass for naive hostname allowlists that only check for
+    dotted-quad IPv4 literals."""
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["http://2130706433/receipt"])
+
+
+def test_submit_action_rejects_evidence_url_with_credentials():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["https://user:pass@example.com/receipt"])
+
+
+def test_submit_action_rejects_evidence_url_with_explicit_port():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        with vm.expect_revert("http(s) URL"):
+            rein.submit_action("Buy supplies.", 50, ["https://example.com:8443/receipt"])
+
+
+def test_submit_action_accepts_plain_public_https_url():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = agent
+        action_id = rein.submit_action("Buy supplies.", 50, ["https://example.com/receipt"])
+        assert action_id == 0
+
+
 def test_submit_action_rejects_too_many_urls():
     vm = VMContext()
     principal, agent = create_test_addresses(2)

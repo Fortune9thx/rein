@@ -84,7 +84,7 @@ def test_in_mandate_verdict_never_touches_bond():
 
         vm.mock_web(r"example\.com/invoice", {"method": "GET", "status": 200, "body": "Invoice for approved vendor, $100."})
         vm.mock_llm(
-            r"mandate jury",
+            r"authorized job",
             _wrapped_json(
                 {
                     "verdict": "IN_MANDATE",

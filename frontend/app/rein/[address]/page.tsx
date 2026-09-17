@@ -43,6 +43,9 @@ export default function ReinDetailPage({ params }: { params: Promise<{ address: 
   const [adjudicateStage, setAdjudicateStage] = useState<Stage>("idle");
   const [overlayVerdict, setOverlayVerdict] = useState<Verdict | null>(null);
 
+  const [expireStage, setExpireStage] = useState<Stage>("idle");
+  const [expireError, setExpireError] = useState<string | null>(null);
+
   const refresh = useCallback(async () => {
     try {
       const readClient = getReadOnlyClient();
@@ -154,6 +157,42 @@ export default function ReinDetailPage({ params }: { params: Promise<{ address: 
     }
   }
 
+  async function handleExpireMandate() {
+    if (!client) return;
+    setExpireError(null);
+    setExpireStage("sign");
+    try {
+      const hash = await client.writeContract({
+        address: address as `0x${string}`,
+        functionName: "expire_mandate",
+        args: [],
+        kwargs: {},
+        value: 0n,
+      });
+      setExpireStage("pending");
+      const tx = await pollConsensusStatus(
+        client,
+        hash,
+        (tick) => {
+          if (tick.status === TransactionStatus.ACCEPTED) setExpireStage("accepted");
+        },
+        { requireFinalized: true }
+      );
+      setExpireStage("finalized");
+      const outcome = describeTransactionOutcome(tx);
+      if (!outcome.succeeded) {
+        setExpireError(outcome.reason ?? "Transaction failed.");
+        setExpireStage("error");
+        return;
+      }
+      setExpireStage("idle");
+      await refresh();
+    } catch (err) {
+      setExpireError(err instanceof Error ? err.message : "Something went wrong.");
+      setExpireStage("error");
+    }
+  }
+
   if (loadError && !status) {
     return <p className="max-w-4xl mx-auto px-6 py-16 text-yellow font-mono">{loadError}</p>;
   }
@@ -202,6 +241,27 @@ export default function ReinDetailPage({ params }: { params: Promise<{ address: 
           <span className="text-yellow">{status.last_verdict}</span> ({status.last_confidence}) — {status.last_reason}
         </div>
       )}
+
+      {!status.kill_switch &&
+        !status.settled &&
+        status.bond_funded &&
+        Date.now() / 1000 > Number(status.deadline_ts) && (
+          <div className="mb-10 border border-yellow p-6">
+            <h2 className="font-display text-xl text-yellow mb-2">MANDATE EXPIRED</h2>
+            <p className="font-mono text-xs text-fg-muted mb-4">
+              The deadline has passed with no violation ever recorded. Anyone can return the
+              principal&apos;s bond now — there is no other way to reclaim it.
+            </p>
+            <button
+              className="btn-tape"
+              disabled={!client || (expireStage !== "idle" && expireStage !== "error")}
+              onClick={handleExpireMandate}
+            >
+              {expireStage === "idle" || expireStage === "error" ? "Expire Mandate & Return Bond" : STAGE_LABEL[expireStage]}
+            </button>
+            {expireError && <p className="text-yellow font-mono text-sm mt-3">{expireError}</p>}
+          </div>
+        )}
 
       {!status.kill_switch && (
         <div className="mb-14 border border-border p-6">
