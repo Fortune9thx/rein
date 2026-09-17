@@ -18,7 +18,7 @@ staking on outcomes. It is a live jury with real, on-chain teeth.
 
 ## Live
 
-- **App:** https://frontend-gilt-omega-54.vercel.app
+- **App:** https://rein-x9.vercel.app
 - **`ReinFactory`** on GenLayer Studio Devnet ("Studio Next", chain id `61997`):
   `0x0B045FF6AeA802AF611856386Ad953477Ae84d50`
 - Full lifecycle (create → fund bond → submit action → adjudicate → expire)
