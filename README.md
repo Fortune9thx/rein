@@ -16,6 +16,15 @@ the world should honor.** This is not escrow — REIN never holds the funds an
 agent spends, only its own bond. It is not a prediction market — there is no
 staking on outcomes. It is a live jury with real, on-chain teeth.
 
+## Live
+
+- **App:** https://frontend-gilt-omega-54.vercel.app
+- **`ReinFactory`** on GenLayer Studio Devnet ("Studio Next", chain id `61997`):
+  `0x0B045FF6AeA802AF611856386Ad953477Ae84d50`
+- Full lifecycle (create → fund bond → submit action → adjudicate → expire)
+  verified live end to end, including a real `gl.eq_principle.prompt_non_comparative`
+  jury call and a real `expire_mandate()` bond return.
+
 ## How it works
 
 1. A principal posts a Rein: a mandate, a spend cap, a deadline, and (in a
@@ -58,6 +67,11 @@ genvm-lint check contracts/Rein.py
 genvm-lint check contracts/ReinFactory.py
 gltest tests/direct
 ```
+
+38/38 direct-mode tests pass (creation validation, bond funding, action
+submission with SSRF-safe URL checks, all three verdict paths, the
+deterministic overspend/deadline short-circuit, and the `expire_mandate()`
+liveness escape hatch).
 
 ## Deploying
 
