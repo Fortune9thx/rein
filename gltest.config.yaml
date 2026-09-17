@@ -1,0 +1,32 @@
+# gltest configuration for REIN.
+# Direct-mode tests (tests/direct, via `gltest tests/direct`) run entirely
+# in-process against the WASI mock and do not touch any network below.
+# Integration tests (tests/integration) target GenLayer Studio Next and
+# require a funded account private key supplied via .env -- never committed
+# here.
+networks:
+  default: localnet
+  localnet:
+  studio_next:
+    # id 61997, RPC studio-dev.genlayer.com -- confirmed by reading
+    # genlayer-js@2.0.0-rc.1's own `studioDevnet` chain export (real
+    # Consensus contract addresses included) and by an actual successful
+    # ReinFactory deploy/read against this exact endpoint. This is the
+    # SAME network the deploy script and frontend call "Studio Next";
+    # studionet (id 61999, studio.genlayer.com) is a different, older
+    # network. Contracts are pinned to runner hash
+    # 5jycge4q8k23462jtb0b9fyey1s9qz928sz2nbrd9mg4sxqg2qng and the v0.3.0
+    # contract API (see contracts/Rein.py) -- the older
+    # 1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6 hash fails on
+    # this network with "invalid_contract runner malformed".
+    id: 61997
+    url: https://studio-dev.genlayer.com/api
+    accounts:
+      - ${DEPLOYER_PRIVATE_KEY}
+    chain_type: studio_devnet
+
+paths:
+  contracts: contracts
+  artifacts: artifacts
+
+environment: .env

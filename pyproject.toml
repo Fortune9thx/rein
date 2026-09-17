@@ -1,0 +1,15 @@
+[project]
+name = "rein"
+version = "0.1.0"
+description = "REIN -- a live mandate object for AI agents that already hold keys, built on GenLayer Intelligent Contracts."
+requires-python = ">=3.12"
+dependencies = [
+    "genlayer-py",
+    "genlayer-test",
+    "genvm-linter",
+    "pytest",
+    "python-dotenv",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/direct"]

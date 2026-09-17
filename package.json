@@ -1,0 +1,15 @@
+{
+  "name": "rein-deploy",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deploy tooling for the REIN contracts -- see deploy/deploy.mjs. The frontend has its own package.json under frontend/.",
+  "scripts": {
+    "deploy": "node deploy/deploy.mjs",
+    "dev": "npm --prefix frontend run dev"
+  },
+  "dependencies": {
+    "ethers": "^6.13.4",
+    "genlayer-js": "2.0.0-rc.1"
+  }
+}

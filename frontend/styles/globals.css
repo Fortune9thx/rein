@@ -1,0 +1,257 @@
+@import "tailwindcss";
+
+:root {
+  /* Stay Weird / caution-tape editorial system -- black void, warning
+     yellow, condensed impact type. Deliberately NOT a SaaS palette: no
+     mint, no peach gradients, no glassmorphism. This is tape and posters. */
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-raised: #121212;
+  --color-hairline: #ffd400;
+  --color-border: #2a2a2a;
+
+  --color-yellow: #ffd400;
+  --color-yellow-dim: #d4b100;
+  --color-yellow-soft: rgba(255, 212, 0, 0.12);
+
+  --color-fg: #ffd400;
+  --color-fg-body: #f5f5f5;
+  --color-fg-muted: #8a8a8a;
+
+  --color-black: #000000;
+
+  --font-display: "Anton", "Impact", ui-sans-serif, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-tape: 2px;
+}
+
+@theme inline {
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-hairline: var(--color-hairline);
+  --color-border: var(--color-border);
+  --color-yellow: var(--color-yellow);
+  --color-yellow-dim: var(--color-yellow-dim);
+  --color-yellow-soft: var(--color-yellow-soft);
+  --color-fg: var(--color-fg);
+  --color-fg-body: var(--color-fg-body);
+  --color-fg-muted: var(--color-fg-muted);
+  --font-display: var(--font-display);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg-body);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+  line-height: 0.92;
+}
+
+/* ------------------------------------------------------------------ */
+/* Caution tape band -- diagonal repeating wordmark strip.             */
+/* ------------------------------------------------------------------ */
+.tape-band {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-yellow);
+  color: var(--color-black);
+  white-space: nowrap;
+}
+
+.tape-band__track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: tape-scroll 22s linear infinite;
+}
+
+.tape-band__track span {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  padding: 0 1.25rem;
+  font-size: 1.1rem;
+  letter-spacing: 0.02em;
+}
+
+.tape-band--diagonal {
+  transform: rotate(-3deg) scale(1.05);
+}
+
+@keyframes tape-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Hard-edged UI primitives -- 0-4px radii only, full-bleed buttons.   */
+/* ------------------------------------------------------------------ */
+.btn-tape {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--color-yellow);
+  color: var(--color-black);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.9rem 1.5rem;
+  border-radius: var(--radius-tape);
+  transition: transform 0.08s ease, background 0.08s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-tape:hover {
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.btn-tape:active {
+  transform: translateY(0);
+}
+
+.btn-tape:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-tape-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: transparent;
+  color: var(--color-yellow);
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0.9rem 1.5rem;
+  border-radius: var(--radius-tape);
+  border: 1px solid var(--color-yellow);
+  cursor: pointer;
+  transition: background 0.08s ease, color 0.08s ease;
+}
+
+.btn-tape-outline:hover {
+  background: var(--color-yellow);
+  color: var(--color-black);
+}
+
+.field-label {
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: var(--color-yellow);
+}
+
+.field-input {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  color: var(--color-fg-body);
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--radius-tape);
+  font-family: var(--font-sans);
+}
+
+.field-input:focus {
+  outline: none;
+  border-color: var(--color-yellow);
+}
+
+.hairline {
+  border-bottom: 1px solid var(--color-hairline);
+}
+
+.archive-row {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.archive-index {
+  font-family: var(--font-mono);
+  color: var(--color-fg-muted);
+  font-size: 0.8rem;
+}
+
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.35rem 0.75rem;
+  border: 2px solid currentColor;
+  border-radius: var(--radius-tape);
+  transform: rotate(-2deg);
+}
+
+.stamp--live {
+  color: var(--color-yellow);
+}
+
+.stamp--halted {
+  color: #ffffff;
+  background: var(--color-black);
+  border-color: var(--color-yellow);
+}
+
+.tick-rule {
+  height: 2px;
+  background: var(--color-border);
+  position: relative;
+  overflow: hidden;
+}
+
+.tick-rule::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--color-yellow);
+  animation: tick-fill 1.4s ease-in-out infinite;
+}
+
+@keyframes tick-fill {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+::selection {
+  background: var(--color-yellow);
+  color: var(--color-black);
+}
