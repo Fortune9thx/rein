@@ -6,3 +6,4 @@ __pycache__/
 .pytest_cache/
 artifacts/*.json
 *.pyc
+frontend/tsconfig.tsbuildinfo
