@@ -44,8 +44,10 @@ staking on outcomes. It is a live jury with real, on-chain teeth.
 
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full design
 rationale, [docs/RESOLUTION_LOGIC.md](docs/RESOLUTION_LOGIC.md) for the exact
-adjudication state machine, and [docs/INTEGRATION.md](docs/INTEGRATION.md)
-for wiring an agent runtime up to a live Rein.
+adjudication state machine, [docs/INTEGRATION.md](docs/INTEGRATION.md) for
+wiring an agent runtime up to a live Rein, [SECURITY.md](SECURITY.md) for the
+trust model and SSRF/validator-independence mitigations, and
+[CHANGELOG.md](CHANGELOG.md) for the pre-submission audit history.
 
 ## Repository layout
 
