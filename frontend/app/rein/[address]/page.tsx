@@ -27,7 +27,7 @@ const STAGE_LABEL: Record<Stage, string> = {
 
 export default function ReinDetailPage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = use(params);
-  const { client } = useGenLayerClient();
+  const { client, address: connectedAddress } = useGenLayerClient();
 
   const [status, setStatus] = useState<ReinStatus | null>(null);
   const [actions, setActions] = useState<ReinAction[]>([]);
@@ -206,6 +206,16 @@ export default function ReinDetailPage({ params }: { params: Promise<{ address: 
     );
   }
 
+  // submit_action() is restricted on-chain to the bound agent or the
+  // principal (a steward-flagged fix -- an earlier, fully permissionless
+  // design let any outsider fabricate an action). Mirror that restriction
+  // in the UI rather than letting an unauthorized wallet fill the form,
+  // sign, and wait through a full consensus round just to see a revert.
+  const isAuthorizedSubmitter =
+    !!connectedAddress &&
+    (connectedAddress.toLowerCase() === status.agent.toLowerCase() ||
+      connectedAddress.toLowerCase() === status.principal.toLowerCase());
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-16">
       <VerdictOverlay verdict={overlayVerdict} onClose={() => setOverlayVerdict(null)} />
@@ -266,22 +276,32 @@ export default function ReinDetailPage({ params }: { params: Promise<{ address: 
       {!status.kill_switch && (
         <div className="mb-14 border border-border p-6">
           <h2 className="font-display text-xl text-yellow mb-4">SUBMIT ACTION</h2>
+          {!client && (
+            <p className="font-mono text-xs text-fg-muted mb-4">Connect a wallet to submit an action.</p>
+          )}
+          {client && !isAuthorizedSubmitter && (
+            <p className="font-mono text-xs text-yellow mb-4 border border-yellow p-3">
+              Only the bound agent ({status.agent}) or the principal ({status.principal}) may
+              submit an action on this Rein. Your connected wallet isn&apos;t either — this is
+              enforced on-chain, not just in this UI.
+            </p>
+          )}
           <div className="space-y-4">
             <div>
               <label className="field-label">Description</label>
-              <input className="field-input mt-2" value={description} onChange={(e) => setDescription(e.target.value)} />
+              <input className="field-input mt-2" value={description} onChange={(e) => setDescription(e.target.value)} disabled={!isAuthorizedSubmitter} />
             </div>
             <div>
               <label className="field-label">Amount</label>
-              <input className="field-input mt-2" type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <input className="field-input mt-2" type="number" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} disabled={!isAuthorizedSubmitter} />
             </div>
             <div>
               <label className="field-label">Evidence URLs (one per line)</label>
-              <textarea className="field-input mt-2 h-20" value={urls} onChange={(e) => setUrls(e.target.value)} />
+              <textarea className="field-input mt-2 h-20" value={urls} onChange={(e) => setUrls(e.target.value)} disabled={!isAuthorizedSubmitter} />
             </div>
             <button
               className="btn-tape"
-              disabled={!client || !description || !amount || (submitStage !== "idle" && submitStage !== "error")}
+              disabled={!client || !isAuthorizedSubmitter || !description || !amount || (submitStage !== "idle" && submitStage !== "error")}
               onClick={handleSubmitAction}
             >
               {submitStage === "idle" || submitStage === "error" ? "Submit Action" : STAGE_LABEL[submitStage]}

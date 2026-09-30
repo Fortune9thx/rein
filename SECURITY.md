@@ -37,6 +37,25 @@ fabricated `submit_action()` call reverts, and the mandate's `kill_switch`,
 that's safe, since it only evaluates data the agent or principal already
 committed to, never caller-injected claims.
 
+**Considered and deliberately kept: the principal may submit an action
+against their own agent, including a fabricated over-cap one.** The
+steward's suggested fix named "the configured agent" specifically; this
+contract also allows the principal, for a reason that doesn't reintroduce
+the rejected vulnerability: the principal already has full, unilateral
+authority over this specific mandate (they fund it, and via
+`expire_mandate()` can already reclaim the bond and end it at will once the
+deadline passes). A principal who fabricates a false VIOLATION against
+their own agent gains nothing they couldn't already get legitimately --
+the bond is paid back to them either way -- and the only real effect is an
+earlier, adversarially-framed end to a mandate they own outright. The
+`threat_score`/`kill_switch` record this produces is local to this one
+Rein instance only; nothing in this codebase treats it as a portable,
+cross-mandate reputation signal for the agent. This is categorically
+different from the rejected vulnerability, where a party with **zero**
+stake in the mandate could unilaterally damage it. If a future version adds
+any cross-mandate reputation aggregation that reads `threat_score`, this
+exact allowance should be re-reviewed at that time.
+
 ## Validator independence
 
 `adjudicate()` uses `gl.eq_principle.prompt_non_comparative`, not a
