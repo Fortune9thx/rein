@@ -11,11 +11,6 @@ as a result: remaining spend cap goes down, threat score goes up, and a
 sticky on-chain kill switch can trip permanently, slashing a principal-posted
 bond on the first violation.
 
-**LEASH stored the job. REIN judges actions against the job and changes what
-the world should honor.** This is not escrow — REIN never holds the funds an
-agent spends, only its own bond. It is not a prediction market — there is no
-staking on outcomes. It is a live jury with real, on-chain teeth.
-
 ## Live
 
 - **App:** https://rein-x9.vercel.app
