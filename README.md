@@ -15,10 +15,11 @@ bond on the first violation.
 
 - **App:** https://rein-x9.vercel.app
 - **`ReinFactory`** on GenLayer Studio Devnet ("Studio Next", chain id `61997`):
-  `0x0B045FF6AeA802AF611856386Ad953477Ae84d50`
+  `0x266ABC530E379856D7cB5bb1a74aE52D9CAD3743`
 - Full lifecycle (create → fund bond → submit action → adjudicate → expire)
   verified live end to end, including a real `gl.eq_principle.prompt_non_comparative`
-  jury call and a real `expire_mandate()` bond return.
+  jury call, a real `expire_mandate()` bond return, and a real rejected
+  outsider `submit_action()` attack proving the mandate stays untouched.
 
 ## How it works
 
