@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-30 — Steward rejection appeal
+
+**Rejection**: "We cannot accept this submission because any outsider can
+submit an unauthenticated over-cap action and permanently halt a funded
+mandate without evidence or validator review. Bind submitted actions to the
+configured agent or an independently verifiable transaction before allowing
+them to trigger violation and settlement."
+
+- **Fixed**: `submit_action()` now requires `gl.message.sender_address` to
+  be either the bound agent or the principal. Previously anyone could call
+  it, including for a fabricated, wildly over-cap action that tripped
+  `adjudicate()`'s deterministic VIOLATION pre-check with zero evidence or
+  validator involvement.
+- Added two direct-mode tests proving the fix: an outsider's submission
+  reverts and leaves `kill_switch`/`remaining_cap`/`action_count` completely
+  unchanged; the principal (not just the agent) can still legitimately
+  submit. 40/40 direct-mode tests pass.
+- Updated README/INTEGRATION.md's "anyone can submit" claims, which were
+  the original (now-rejected) design intent, to describe the fixed
+  behavior.
+- Redeployed `ReinFactory` to `0x266ABC530E379856D7cB5bb1a74aE52D9CAD3743`
+  and proved the fix live: a real, random, previously-uninvolved wallet's
+  fabricated over-cap `submit_action()` call was rejected on-chain
+  (`FINISHED_WITH_ERROR`), the mandate was provably untouched, and a
+  legitimate principal-submitted action still adjudicated normally through
+  the real jury (`IN_MANDATE`, confidence 0.97).
+
 ## 2026-09-17 — Pre-submission audit pass
 
 - **Redesigned `adjudicate()`'s validator around `gl.eq_principle.prompt_non_comparative`**,

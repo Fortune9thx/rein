@@ -87,6 +87,36 @@ def test_submit_action_records_pending_action():
         assert rein.get_actions_count() == 1
 
 
+def test_submit_action_rejects_unauthenticated_outsider():
+    """Steward-flagged rejection: an unrelated third party must never be
+    able to submit an action at all -- not even a wildly over-cap one meant
+    to fabricate a fast, unreviewed VIOLATION and grief a funded mandate
+    with no evidence or validator involvement."""
+    vm = VMContext()
+    principal, agent, outsider = create_test_addresses(3)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent, spend_cap=100)
+        _fund(rein, vm, principal, 100)
+        vm.sender = outsider
+        with vm.expect_revert("Only the principal or the bound agent"):
+            rein.submit_action("Fabricated outsider action.", 10_000, [])
+        # And the mandate must be provably untouched by the rejected attempt.
+        assert rein.is_halted() is False
+        assert rein.get_actions_count() == 0
+        assert rein.remaining_allowance() == "100"
+
+
+def test_submit_action_allows_principal_not_just_agent():
+    vm = VMContext()
+    principal, agent = create_test_addresses(2)
+    with vm.activate():
+        rein = _deploy(vm, principal, agent)
+        _fund(rein, vm, principal, 100)
+        vm.sender = principal
+        action_id = rein.submit_action("Principal-observed action.", 25, [])
+        assert action_id == 0
+
+
 def test_submit_action_rejects_non_http_evidence():
     vm = VMContext()
     principal, agent = create_test_addresses(2)

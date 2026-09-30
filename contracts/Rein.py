@@ -223,6 +223,20 @@ class Rein(gl.contract.Contract):
 
     @gl.public.write
     def submit_action(self, description: str, amount: int, evidence_urls: list[str]) -> int:
+        # Steward-flagged rejection: an unauthenticated outsider could
+        # submit a fabricated, over-cap action and trigger the deterministic
+        # VIOLATION pre-check below with zero evidence or validator review,
+        # permanently halting a funded mandate and slashing the bond on a
+        # made-up claim. Only the two parties with a real, accountable stake
+        # in this specific mandate -- the bound agent (self-reporting its own
+        # action) or the principal (reporting an observed action) -- may
+        # submit one. This closes the hole for both the deterministic
+        # fast-path AND the LLM jury path, since a fabricated within-cap
+        # action from a non-participant is exactly as illegitimate as a
+        # fabricated over-cap one.
+        sender_hex = gl.message.sender_address.as_hex
+        if sender_hex not in (self.agent.as_hex, self.principal.as_hex):
+            raise gl.vm.UserError("Only the principal or the bound agent may submit an action.")
         if self.kill_switch:
             raise gl.vm.UserError("This Rein is halted; the kill switch is engaged.")
         if not self.bond_funded:

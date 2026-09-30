@@ -70,11 +70,14 @@ await client.writeContract({
 });
 ```
 
-Anyone — the principal, the agent itself, or an independent watcher — can
-call `submit_action()` and later `adjudicate(action_id)`. This is
-deliberate: a compromised or malfunctioning agent has no ability to suppress
-its own review, since it does not control who submits the action or who
-calls adjudicate on it.
+Only the bound agent or the principal may call `submit_action()` — an
+earlier, fully permissionless design let any unrelated address fabricate an
+action and force an unreviewed VIOLATION, a real steward-flagged fund-safety
+gap now closed. `adjudicate(action_id)` on an already-submitted action stays
+permissionless: anyone can trigger it once a real action exists, so a
+compromised or malfunctioning agent still can't suppress review of something
+it (or the principal) already submitted, even if it can no longer be framed
+by an outsider's fabricated claim in the first place.
 
 ## What a VIOLATION means for your integration
 

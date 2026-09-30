@@ -20,6 +20,23 @@ untrusted:
   instructs the model to ignore any text inside the evidence that tries to
   dictate a verdict.
 
+## Action submission authentication
+
+**[Fixed a real steward-flagged rejection]** `submit_action()` is restricted
+to `gl.message.sender_address` being either `self.agent` or `self.principal`
+-- the two parties with a real, accountable stake in this specific mandate.
+An earlier, fully permissionless design (matching a naive reading of "anyone
+can submit an observed action") let any unrelated outsider fabricate an
+over-cap action and trigger `adjudicate()`'s deterministic VIOLATION
+pre-check with zero evidence or validator review, permanently halting a
+funded mandate and slashing the bond on a claim nobody with a stake ever
+made. Proven closed with a live test: a random, uninvolved wallet's
+fabricated `submit_action()` call reverts, and the mandate's `kill_switch`,
+`remaining_cap`, and `action_count` are all provably unchanged afterward.
+`adjudicate()` itself stays permissionless on an already-submitted action --
+that's safe, since it only evaluates data the agent or principal already
+committed to, never caller-injected claims.
+
 ## Validator independence
 
 `adjudicate()` uses `gl.eq_principle.prompt_non_comparative`, not a

@@ -30,8 +30,10 @@ staking on outcomes. It is a live jury with real, on-chain teeth.
 1. A principal posts a Rein: a mandate, a spend cap, a deadline, and (in a
    second transaction) a bond. An agent address is bound — the agent keeps
    its own keys, always.
-2. Anyone — principal, agent, or an independent watcher — submits an action
-   packet: description, amount, and evidence URLs.
+2. Only the bound agent or the principal submits an action packet:
+   description, amount, and evidence URLs — the two parties with a real,
+   accountable stake in this specific mandate. Adjudication itself stays
+   permissionless: anyone can trigger it once an action exists.
 3. `adjudicate()` runs a deterministic pre-check (is this action already
    over cap or past the deadline?) and, failing that, a live GenLayer jury:
    validators fetch every evidence URL fresh and judge the action against
